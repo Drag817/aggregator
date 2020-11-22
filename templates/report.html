@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+
+{% block title %}Отправить e-mail{% endblock %}
+
+
+{% block body %}
+    <div class="container">
+        {% for msg in get_flashed_messages() %}
+        <div class="alert alert-success" role="alert">{{ msg }}</div>
+        {% endfor %}
+
+        <form method="post">
+            <label>Кому:</label>
+            <input type="email" name="email" class="form-control" placeholder="recipient@email.net">
+            <br>
+             <label>Тема:</label>
+            <input type="subject" name="subject" class="form-control" placeholder="Введите тему сообщения">
+            <br>
+            <label>Сообщение:</label>
+            <textarea type="body" name="body" class="form-control" placeholder="Введите текст сообщения"></textarea>
+            <br>
+            <button class="btn btn-warning" type="submit">ОТПРАВИТЬ</button>
+        </form>
+        <br>
+    </div>
+{% endblock %}

@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+
+
+{% block title %}Поиск{% endblock %}
+
+
+{% block body %}
+
+    <div class="container">
+        {% for msg in get_flashed_messages() %}
+            <div class="alert alert-success" role="alert">{{ msg }}</div>
+        {% endfor %}
+
+        <form method="post">
+            <input type="text" name="keyword" class="form-control" placeholder="Введи артикул или наименование">
+        <br>
+            <button class="btn btn-warning" type="submit">ПОИСК</button>
+
+        <br>
+
+    {% if data %}
+    <table class="table table-hover">
+    <thead>
+    <tr>
+      <th scope="col">Артикуль</th>
+      <th scope="col">Наименование</th>
+      <th scope="col">Цена (закуп)</th>
+      <th scope="col">Продажа (без доставки)</th>
+        <th scope="col">Доставка</th>
+        <th scope="col">В заказ</th>
+    </tr>
+     </thead>
+      <tbody>
+    {% for el in data %}
+
+    <tr>
+      <th scope="row"><a href="https://novosibirskshop.e2e4online.ru/shop/catalog/#/search={{ el.article }}" target="_blank">{{ el.article }}</a></th>
+      <td>{{ el.title }}</td>
+      <td>{{ el.price }}</td>
+      <th scope="row">{{ el.sell_price }}</th>
+    <td>{{ el.delivery }}</td>
+
+
+    <!--<td><input type="submit" value="{{ el.id }}" name="Add" class="btn btn-success"></td>-->
+
+    <td><button type="submit" class="btn btn-primary" value="{{ el.id }}" name="Add">Add</button></td>
+
+
+
+
+    </tr>
+    {% endfor %}
+      </form>
+    </tbody>
+    </table>
+    {% endif %}
+
+
+
+
+
+
+
+
+        <h1>О нас</h1>
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+            eiusmod tempor incididunt ut labore et dolore magna aliqua.
+            Ut enim ad minim veniam, quis nostrud exercitation ullamco
+            laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure
+            dolor in reprehenderit in voluptate velit esse cillum dolore eu
+            fugiat nulla pariatur. Excepteur sint occaecat cupidatat non
+            proident, sunt in culpa qui officia deserunt mollit anim id est
+            laborum.</p>
+    </div>
+
+
+{% endblock %}

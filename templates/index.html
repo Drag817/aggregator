@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+
+{% block title %}Агрегатор{% endblock %}
+
+
+{% block body %}
+    <div class="pricing-header px-3 py-3 pt-md-5 pb-md-4 mx-auto text-center">
+  <h1 class="display-4">Pricing</h1>
+  <p class="lead">Quickly build an effective pricing table for your potential customers with this Bootstrap example. It’s built with default Bootstrap components and utilities with little customization.</p>
+</div>
+
+<div class="container">
+<div class="card-deck mb-3 text-center">
+    {% for el in data %}
+    <div class="card mb-4 shadow-sm">
+      <div class="card-header">
+        <h4 class="my-0 font-weight-normal">{{ el.title.split(',')[0] }}</h4>
+      </div>
+      <div class="card-body">
+        <h3 class="card-title pricing-card-title">{{ el.price }} руб</h3>
+        <ul class="list-unstyled mt-3 mb-4">
+            <li><b>{{ el.title }}</b></li>
+            <li>Гарантия: {{ el.guarant }} мес.</li>
+            <li>Поступление на склад: {{ el.delivery }}</li>
+        </ul>
+        <a href="https://novosibirskshop.e2e4online.ru/shop/catalog/#/search={{ el.article }}" class="btn btn-lg btn-block btn-outline-primary" target="_blank">E2E4</a>
+      </div>
+    </div>
+    {% endfor %}
+</div>
+</div>
+{% endblock %}
