@@ -324,8 +324,8 @@ def search():
                 keyword = keyword.lower().split()
                 for el in PRODUCTS:
                     if len(keyword) > 1:
-                        if keyword[0] in el.title.lower() and \
-                            keyword[1] in el.title.lower():
+                        if keyword[0] in el.title.lower() and keyword[1] in \
+                                el.title.lower():
                             data.append(el)
                     else:
                         if keyword[0] in el.title.lower():
@@ -530,7 +530,7 @@ def order(id):
                 db.session.delete(prod)
             db.session.commit()
 
-            if (request.form.get('Upd')):
+            if request.form.get('Upd'):
                 id_upd = request.form.get('Upd')
                 count = int(request.form[id_upd])
                 prod = Cart.query.get(id_upd)
@@ -563,7 +563,6 @@ def order(id):
         else:
             prod.place = cat_place[prod.cat]
 
-
         prod.item_count = item.count
         prod.total_price = prod.item_count * prod.price
         places += prod.place * prod.item_count
@@ -578,7 +577,7 @@ def order(id):
         delivery = 615 + (places * 485)
 
     if request.method == 'POST':
-        if (request.form.get('Change')):
+        if request.form.get('Change'):
             places = 0
             all_price = 0
             for item in data:
@@ -602,7 +601,6 @@ def order(id):
                 delivery = 615 + (places * 485)
             else:
                 delivery = int(request.form.get('delivery'))
-
 
     for prod in data:
         delivery_part = prod.total_price / all_price * 100
