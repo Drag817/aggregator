@@ -624,7 +624,10 @@ def order(id):
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, host='192.168.0.102', port=5000)
+
+# TODO: add favicon
+
 
 # >>> from main import db
 # >>> db.create_all()
