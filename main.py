@@ -6,9 +6,12 @@ import zipfile
 from datetime import datetime
 from datetime import date
 
-from flask import Flask, render_template, request, redirect, flash
+from flask import Flask, render_template, request, redirect, flash, url_for
 from flask_sqlalchemy import SQLAlchemy
+from flask_login import LoginManager, UserMixin, login_user, \
+    login_required, logout_user, login_manager
 from imbox import Imbox
+from werkzeug.security import check_password_hash, generate_password_hash
 
 from analyzer import parse_db
 from cost_adds import cat_list, cat_place
@@ -17,7 +20,8 @@ from cost_adds import cat_list, cat_place
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///shop.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SECRET_KEY'] = 'some_test_key'
+app.config['SECRET_KEY'] = 'KLn|K6ef|?[0Fk"L_c<9%Oi`!WzbR[`X|o#t4dk-b=f8i0Gh)0'
+manager = LoginManager(app)
 db = SQLAlchemy(app)
 
 
@@ -91,6 +95,13 @@ class Order(db.Model):
         return self.order_id
 
 
+class User(db.Model, UserMixin):
+
+    id = db.Column(db.Integer, primary_key=True)
+    login = db.Column(db.String(120), nullable=False, unique=True)
+    password = db.Column(db.String(255), nullable=False)
+
+
 class SellProduct(Product):
 
     def __init__(self, sell_price, item_count, place, total_price,
@@ -152,14 +163,29 @@ PRODUCTS = Product.query.all()
 sell_price()
 
 
+@manager.user_loader
+def load_user(user_id):
+    return User.query.get(user_id)
+
+
+@app.after_request
+def redirect_to_signin(response):
+    if response.status_code == 401:
+        flash('Для доступа к этой странице необходимо пройти авторизацию!')
+        return redirect(url_for('login_page'))
+
+    return response
+
+
 @app.route('/')
 def index():
     # TODO: add multiple_adding func
-    data = PRODUCTS[:-6:-1]
-    return render_template('index.html', data=data)
+    # data = PRODUCTS[:-6:-1]
+    return render_template('index.html')
 
 
 @app.route('/engine', methods=['POST', 'GET'])
+@login_required
 def engine():
     # TODO: format time in report for normal template
     if request.method == 'POST':
@@ -311,6 +337,7 @@ def engine():
 
 
 @app.route('/search', methods=['POST', 'GET'])
+@login_required
 def search():
     if request.method == 'POST':
         if request.form['keyword']:
@@ -346,6 +373,7 @@ def search():
 
 
 @app.route('/catalog')
+@login_required
 def catalog():
     # TODO: make categories like e2e4
     # TODO: optimize category_list func
@@ -357,6 +385,7 @@ def catalog():
 
 
 @app.route('/catalog/<cat>')
+@login_required
 def cat(cat):
     sub_cat = []
     for prod in PRODUCTS:
@@ -367,6 +396,7 @@ def cat(cat):
 
 
 @app.route('/catalog/sub/<sub_cat>', methods=['POST', 'GET'])
+@login_required
 def show(sub_cat):
     data = []
     for prod in PRODUCTS:
@@ -387,6 +417,7 @@ def show(sub_cat):
 
 
 @app.route('/report', methods=['POST', 'GET'])
+@login_required
 def report():
     if request.method == 'POST':
         flash('Сообщение отправлено')
@@ -408,6 +439,7 @@ def report():
 
 
 @app.route('/cart', methods=['POST', 'GET'])
+@login_required
 def cart():
     # TODO: add sell price + delivery
     cart = Cart.query.all()
@@ -473,6 +505,7 @@ def cart():
 
 
 @app.route('/orders', methods=['POST', 'GET'])
+@login_required
 def orders():
     if request.method == 'POST':
         if request.form.get('Del'):
@@ -507,6 +540,7 @@ def orders():
 
 
 @app.route('/order/<int:id>', methods=['POST', 'GET'])
+@login_required
 def order(id):
     if request.method == 'POST':
         if request.form.get('Save'):
@@ -623,8 +657,60 @@ def order(id):
                            )
 
 
+@app.route('/login', methods=['GET', 'POST'])
+def login_page():
+    login = request.form.get('login')
+    password = request.form.get('password')
+
+    if request.method == 'POST':
+        if login and password:
+            user = User.query.filter_by(login=login).first()
+
+            if user and check_password_hash(user.password, password):
+                login_user(user)
+
+                # next_page = request.args.get('next')
+                return render_template('search.html')
+            else:
+                flash('Логин или пароль неверен')
+        else:
+            flash('Заполните формы')
+
+    return render_template('login.html')
+
+
+@app.route('/logout', methods=['GET', 'POST'])
+@login_required
+def logout():
+    logout_user()
+    return render_template('login.html')
+
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    login = request.form.get('login')
+    password = request.form.get('password')
+    password2 = request.form.get('password2')
+
+    if request.method == 'POST':
+        if not (login or password or password2):
+            flash('Заполните все поля')
+        elif password != password2:
+            flash('Пароли не совпадают')
+        else:
+            hash_pwd = generate_password_hash(password)
+            new_user = User(login=login, password=hash_pwd)
+            db.session.add(new_user)
+            db.session.commit()
+
+            return redirect(url_for('login_page'))
+
+    return render_template('register.html')
+
+
+
 if __name__ == '__main__':
-    app.run(debug=True, host='192.168.0.102', port=5000)
+    app.run(debug=True, host='192.168.0.123', port=5000)
 
 # TODO: add favicon
 
