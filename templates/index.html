@@ -12,7 +12,7 @@
     <div class="d-flex flex-column flex-md-row align-items-center p-3 px-md-4 mb-3 bg-white border-bottom shadow-sm">
   <h5 class="my-0 mr-md-auto font-weight-normal">iTech</h5>
   <nav class="my-2 my-md-0 mr-md-3">
-      <a class="p-2 text-dark" href="/registеr">Регистрация</a>
+      <a class="p-2 text-dark" href="/register">Регистрация</a>
   </nav>
   <a class="btn btn-outline-primary" href="/login">Войти</a>
 
@@ -20,6 +20,10 @@
 </div>
 
     <div class="container">
+        {% for msg in get_flashed_messages() %}
+            <div class="alert alert-danger" role="alert">{{ msg }}</div>
+        {% endfor %}
+
         <h1>Добро пожаловать!</h1>
         <h4>Для работы в агрегаторе, Вам необходимо <a href="/login">авторизоваться</a>!</h4>
     </div>

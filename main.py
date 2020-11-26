@@ -9,7 +9,7 @@ from datetime import date
 from flask import Flask, render_template, request, redirect, flash, url_for
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, \
-    login_required, logout_user, login_manager
+    login_required, logout_user
 from imbox import Imbox
 from werkzeug.security import check_password_hash, generate_password_hash
 
@@ -172,7 +172,10 @@ def load_user(user_id):
 def redirect_to_signin(response):
     if response.status_code == 401:
         flash('Для доступа к этой странице необходимо пройти авторизацию!')
-        return redirect(url_for('login_page'))
+        return redirect(url_for('index'))
+    if response.status_code == 404:
+        flash('Страница не найдена')
+        return redirect(url_for('index'))
 
     return response
 
@@ -683,7 +686,7 @@ def login_page():
 @login_required
 def logout():
     logout_user()
-    return render_template('login.html')
+    return render_template('index.html')
 
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -703,10 +706,9 @@ def register():
             db.session.add(new_user)
             db.session.commit()
 
-            return redirect(url_for('login_page'))
+            return render_template('login.html')
 
     return render_template('register.html')
-
 
 
 if __name__ == '__main__':
