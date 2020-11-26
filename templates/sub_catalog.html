@@ -9,10 +9,52 @@
         <h1>{{ cat }}</h1>
     {% for el in sub_cat %}
 
-        <a href="/catalog/sub/{{ el }}">{{ el }}</a>
-        <br>
+        <a href="/catalog/sub/{{ el }}">{{ el }}, </a>
+
 
     {% endfor %}
+    <br>
+    <br>
+
+
+    <form method="post">
+
+    {% if data %}
+    <table class="table table-hover">
+    <thead>
+    <tr>
+      <th scope="col">Артикул</th>
+      <th scope="col">Наименование</th>
+      <th scope="col">Цена (закуп)</th>
+      <th scope="col">Продажа (без доставки)</th>
+        <th scope="col">Доставка</th>
+        <th scope="col">В заказ</th>
+    </tr>
+     </thead>
+      <tbody>
+    {% for el in data %}
+
+    <tr>
+      <th scope="row"><a href="https://novosibirskshop.e2e4online.ru/shop/catalog/#/search={{ el.article }}" target="_blank">{{ el.article }}</a></th>
+      <td>{{ el.title }}</td>
+      <td>{{ el.price }}</td>
+      <th scope="row">{{ el.sell_price }}</th>
+    <td>{{ el.delivery }}</td>
+
+
+    <!--<td><input type="submit" value="{{ el.id }}" name="Add" class="btn btn-success"></td>-->
+
+    <td><button type="submit" class="btn btn-primary" value="{{ el.id }}" name="Add">Add</button></td>
+
+
+
+
+    </tr>
+    {% endfor %}
+    {% endif %}
+    </tbody>
+    </table>
+        </form>
     </div>
 <br>
 <br>

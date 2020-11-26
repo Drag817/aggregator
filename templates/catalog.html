@@ -7,11 +7,15 @@
 {% block body %}
     <div class="container">
         <h1>Каталог</h1>
-    {% for el in cat %}
+    {% for el in data %}
 
-        <a href="/catalog/{{ el }}">{{ el }}</a>
+        <a href="/catalog/{{ el }}"><h4>{{ el }}</h4></a>
+
+        {% for il in data[el] %}
+            <a href="/catalog/sub/{{ il }}">{{ il }}, </a>
+        {% endfor %}
         <br>
-
+        <br>
     {% endfor %}
     </div>
 <br>

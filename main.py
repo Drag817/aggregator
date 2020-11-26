@@ -9,7 +9,7 @@ from datetime import date
 from flask import Flask, render_template, request, redirect, flash, url_for
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, \
-    login_required, logout_user, login_manager
+    login_required, logout_user
 from imbox import Imbox
 from werkzeug.security import check_password_hash, generate_password_hash
 
@@ -155,12 +155,35 @@ def sell_price():
     return PRODUCTS
 
 
+def prepare_catalog(data):
+    cat = []
+    sub_cat = []
+
+    for prod in PRODUCTS:
+        if prod.cat not in cat:
+            cat.append(prod.cat)
+
+    for el in cat:
+        for prod in PRODUCTS:
+            if prod.cat == el:
+                if prod.sub_cat not in sub_cat:
+                    sub_cat.append(prod.sub_cat)
+
+        foo = {el: sub_cat}
+        data.update(foo)
+        sub_cat = []
+
+    return data
+
+
 def restart_server():
     os.execl(sys.executable, 'python', __file__, *sys.argv[1:])
 
 
 PRODUCTS = Product.query.all()
 sell_price()
+catalog = {}
+cat_log = prepare_catalog(catalog)
 
 
 @manager.user_loader
@@ -172,7 +195,10 @@ def load_user(user_id):
 def redirect_to_signin(response):
     if response.status_code == 401:
         flash('Для доступа к этой странице необходимо пройти авторизацию!')
-        return redirect(url_for('login_page'))
+        return redirect(url_for('index'))
+    if response.status_code == 404:
+        flash('Страница не найдена')
+        return redirect(url_for('index'))
 
     return response
 
@@ -358,6 +384,7 @@ def search():
                         if keyword[0] in el.title.lower():
                             data.append(el)
             return render_template('search.html', data=data[:20])
+        # TODO: make clickable pages
         else:
             id = request.form.get('Add')
             cart = Cart(
@@ -375,24 +402,41 @@ def search():
 @app.route('/catalog')
 @login_required
 def catalog():
-    # TODO: make categories like e2e4
-    # TODO: optimize category_list func
-    cat = []
-    for prod in PRODUCTS:
-        if prod.cat not in cat:
-            cat.append(prod.cat)
-    return render_template('catalog.html', cat=cat)
+    data = cat_log
+    return render_template('catalog.html', data=data)
 
 
 @app.route('/catalog/<cat>')
 @login_required
 def cat(cat):
+    data = []
+
+    for prod in PRODUCTS:
+        if prod.cat == cat:
+            data.append(prod)
+
+    if request.method == 'POST':
+        id = request.form.get('Add')
+        cart = Cart(
+            id=id,
+            item_count=1,
+        )
+        db.session.add(cart)
+        db.session.commit()
+        flash('Товар добавлен в КОРЗИНУ')
+
     sub_cat = []
     for prod in PRODUCTS:
         if prod.cat == cat:
             if prod.sub_cat not in sub_cat:
                 sub_cat.append(prod.sub_cat)
-    return render_template('sub_catalog.html', sub_cat=sub_cat, cat=cat)
+
+    # TODO: make clickable pages
+    return render_template('sub_catalog.html',
+                           data=data[:20],
+                           sub_cat=sub_cat,
+                           cat=cat,
+                           )
 
 
 @app.route('/catalog/sub/<sub_cat>', methods=['POST', 'GET'])
@@ -411,9 +455,8 @@ def show(sub_cat):
         db.session.add(cart)
         db.session.commit()
         flash('Товар добавлен в КОРЗИНУ')
-        return render_template('show.html', data=data[:20], sub_cat=sub_cat)
-    else:
-        return render_template('show.html', data=data[:20], sub_cat=sub_cat)
+        # TODO: make clickable pages
+    return render_template('show.html', data=data[:20], sub_cat=sub_cat)
 
 
 @app.route('/report', methods=['POST', 'GET'])
@@ -683,7 +726,7 @@ def login_page():
 @login_required
 def logout():
     logout_user()
-    return render_template('login.html')
+    return render_template('index.html')
 
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -703,10 +746,9 @@ def register():
             db.session.add(new_user)
             db.session.commit()
 
-            return redirect(url_for('login_page'))
+            return render_template('login.html')
 
     return render_template('register.html')
-
 
 
 if __name__ == '__main__':
